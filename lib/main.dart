@@ -4,17 +4,28 @@ import 'providers/assessment_provider.dart';
 import 'screens/welcome_screen.dart';
 import 'theme/app_theme.dart';
 
-void main() {
-  runApp(const HeartSenseApp());
+Future<void> main() async {
+  // Required before touching any platform channel (shared_preferences
+  // uses one) prior to runApp().
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final assessmentProvider = AssessmentProvider();
+  // Restore whatever the user last entered on this device, if anything,
+  // so the input screens come back pre-filled.
+  await assessmentProvider.loadSavedData();
+
+  runApp(HeartSenseApp(assessmentProvider: assessmentProvider));
 }
 
 class HeartSenseApp extends StatelessWidget {
-  const HeartSenseApp({super.key});
+  final AssessmentProvider assessmentProvider;
+
+  const HeartSenseApp({super.key, required this.assessmentProvider});
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AssessmentProvider(),
+    return ChangeNotifierProvider.value(
+      value: assessmentProvider,
       child: MaterialApp(
         title: 'HeartSense AI',
         debugShowCheckedModeBanner: false,
