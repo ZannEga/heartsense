@@ -1,8 +1,6 @@
 name: heartsense
 description: "HeartSense AI - on-device heart disease risk assessment (MLP / TabNet via TFLite)"
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: 'none'
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -36,6 +34,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   provider: ^6.1.2
   tflite_flutter: ^0.11.0
+  shared_preferences: ^2.3.2
+  pdf: ^3.11.1
+  printing: ^5.13.4
 
 dev_dependencies:
   flutter_test:
