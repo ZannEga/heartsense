@@ -4,6 +4,7 @@ import '../providers/assessment_provider.dart';
 import '../services/tflite_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/step_progress_bar.dart';
+import 'compare_results_screen.dart';
 import 'results_screen.dart';
 
 class ModelSelectionScreen extends StatelessWidget {
@@ -25,11 +26,11 @@ class ModelSelectionScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           children: [
-            const StepProgressBar(currentStep: 3, totalSteps: 3),
+            const StepProgressBar(currentStep: 4, totalSteps: 4),
             const SizedBox(height: 8),
             const Align(
               alignment: Alignment.centerLeft,
-              child: Text('STEP 3 OF 3',
+              child: Text('STEP 4 OF 4',
                   style: TextStyle(
                       color: AppColors.primaryBlue,
                       fontWeight: FontWeight.w700,
@@ -70,10 +71,7 @@ class ModelSelectionScreen extends StatelessWidget {
               description:
                   'A specialized architecture optimized for tabular health '
                   'records. Offers high interpretability, revealing exactly '
-                  'which metrics drove the assessment.\n'
-                  '(Run tools/convert_tabnet_to_tflite.py and place the '
-                  'result at assets/models/tabnet_model.tflite to enable '
-                  'this - see README.md.)',
+                  'which metrics drove the assessment.',
               tags: const [
                 ('Structured Data', AppColors.tagBluebg, AppColors.primaryBlue),
                 ('Highly Interpretable', AppColors.tagBluebg, AppColors.primaryBlue),
@@ -152,6 +150,37 @@ class ModelSelectionScreen extends StatelessWidget {
                   provider.isLoading ? 'Generating...' : 'Generate Prediction',
                   style: const TextStyle(
                       color: Colors.white, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.primaryBlue),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30)),
+                ),
+                onPressed: provider.isLoading
+                    ? null
+                    : () async {
+                        await provider.runComparison();
+                        if (context.mounted) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                                builder: (_) => const CompareResultsScreen()),
+                          );
+                        }
+                      },
+                icon: const Icon(Icons.compare_arrows,
+                    color: AppColors.primaryBlue, size: 20),
+                label: const Text(
+                  'Compare Both Models',
+                  style: TextStyle(
+                      color: AppColors.primaryBlue,
+                      fontWeight: FontWeight.w700),
                 ),
               ),
             ),

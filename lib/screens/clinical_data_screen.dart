@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../constants/option_labels.dart';
 import '../providers/assessment_provider.dart';
+import '../services/validators.dart';
 import '../theme/app_theme.dart';
 import '../widgets/step_progress_bar.dart';
 import '../widgets/section_card.dart';
 import '../widgets/labeled_dropdown.dart';
 import '../widgets/numeric_field.dart';
+import '../widgets/info_label.dart';
 import 'exercise_data_screen.dart';
 
 class ClinicalDataScreen extends StatefulWidget {
@@ -19,17 +22,8 @@ class _ClinicalDataScreenState extends State<ClinicalDataScreen> {
   late TextEditingController _bpController;
   late TextEditingController _cholController;
 
-  static const cpOptions = [
-    'Typical Angina',
-    'Atypical Angina',
-    'Non-anginal Pain',
-    'Asymptomatic',
-  ];
-  static const restEcgOptions = [
-    'Normal',
-    'ST-T Wave Abnormality',
-    'Left Ventricular Hypertrophy',
-  ];
+  String? _bpError;
+  String? _cholError;
 
   @override
   void initState() {
@@ -37,6 +31,9 @@ class _ClinicalDataScreenState extends State<ClinicalDataScreen> {
     final data = context.read<AssessmentProvider>().patientData;
     _bpController = TextEditingController(text: data.restingBp.toStringAsFixed(0));
     _cholController = TextEditingController(text: data.cholesterol.toStringAsFixed(0));
+    // Validate the pre-filled/restored values immediately.
+    _bpError = Validators.restingBp(_bpController.text);
+    _cholError = Validators.cholesterol(_cholController.text);
   }
 
   @override
@@ -45,6 +42,8 @@ class _ClinicalDataScreenState extends State<ClinicalDataScreen> {
     _cholController.dispose();
     super.dispose();
   }
+
+  bool get _isValid => _bpError == null && _cholError == null;
 
   @override
   Widget build(BuildContext context) {
@@ -69,14 +68,14 @@ class _ClinicalDataScreenState extends State<ClinicalDataScreen> {
                 Text('Clinical Data',
                     style: TextStyle(
                         fontWeight: FontWeight.w600, color: AppColors.navy)),
-                Text('Step 1 of 3',
+                Text('Step 1 of 4',
                     style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: AppColors.subtitleGray)),
               ],
             ),
             const SizedBox(height: 10),
-            const StepProgressBar(currentStep: 1, totalSteps: 3),
+            const StepProgressBar(currentStep: 1, totalSteps: 4),
             const SizedBox(height: 20),
             SectionCard(
               title: 'Patient Profile',
@@ -130,14 +129,22 @@ class _ClinicalDataScreenState extends State<ClinicalDataScreen> {
             SectionCard(
               title: 'Symptoms & Vitals',
               children: [
-                const Text('Chest Pain Type (CP)',
-                    style: TextStyle(fontWeight: FontWeight.w600)),
+                const InfoLabel(
+                  label: 'Chest Pain Type (CP)',
+                  info: 'Typical Angina: classic chest pain triggered by '
+                      'exertion or stress.\n'
+                      'Atypical Angina: chest pain that doesn\'t fully fit '
+                      'the typical pattern.\n'
+                      'Non-anginal Pain: chest pain likely unrelated to the '
+                      'heart.\n'
+                      'Asymptomatic: no chest pain reported.',
+                ),
                 const SizedBox(height: 8),
                 LabeledDropdown(
-                  value: cpOptions[data.cp],
-                  items: cpOptions,
+                  value: OptionLabels.cp[data.cp],
+                  items: OptionLabels.cp,
                   onChanged: (v) {
-                    data.cp = cpOptions.indexOf(v!);
+                    data.cp = OptionLabels.cp.indexOf(v!);
                     provider.notifyChanged();
                   },
                 ),
@@ -147,8 +154,15 @@ class _ClinicalDataScreenState extends State<ClinicalDataScreen> {
                 const SizedBox(height: 8),
                 NumericField(
                   controller: _bpController,
-                  onChanged: (v) =>
-                      data.restingBp = double.tryParse(v) ?? data.restingBp,
+                  errorText: _bpError,
+                  onChanged: (v) {
+                    setState(() => _bpError = Validators.restingBp(v));
+                    final parsed = double.tryParse(v);
+                    if (parsed != null) {
+                      data.restingBp = parsed;
+                      provider.notifyChanged();
+                    }
+                  },
                 ),
               ],
             ),
@@ -160,8 +174,15 @@ class _ClinicalDataScreenState extends State<ClinicalDataScreen> {
                 const SizedBox(height: 8),
                 NumericField(
                   controller: _cholController,
-                  onChanged: (v) => data.cholesterol =
-                      double.tryParse(v) ?? data.cholesterol,
+                  errorText: _cholError,
+                  onChanged: (v) {
+                    setState(() => _cholError = Validators.cholesterol(v));
+                    final parsed = double.tryParse(v);
+                    if (parsed != null) {
+                      data.cholesterol = parsed;
+                      provider.notifyChanged();
+                    }
+                  },
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -181,14 +202,20 @@ class _ClinicalDataScreenState extends State<ClinicalDataScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Text('Resting Electrocardiographic Results',
-                    style: TextStyle(fontWeight: FontWeight.w600)),
+                const InfoLabel(
+                  label: 'Resting Electrocardiographic Results',
+                  info: 'Normal: no abnormalities detected at rest.\n'
+                      'ST-T Wave Abnormality: minor irregularities in the '
+                      'heart\'s electrical pattern.\n'
+                      'Left Ventricular Hypertrophy: signs of a thickened '
+                      'heart muscle wall.',
+                ),
                 const SizedBox(height: 8),
                 LabeledDropdown(
-                  value: restEcgOptions[data.restEcg],
-                  items: restEcgOptions,
+                  value: OptionLabels.restEcg[data.restEcg],
+                  items: OptionLabels.restEcg,
                   onChanged: (v) {
-                    data.restEcg = restEcgOptions.indexOf(v!);
+                    data.restEcg = OptionLabels.restEcg.indexOf(v!);
                     provider.notifyChanged();
                   },
                 ),
@@ -200,16 +227,19 @@ class _ClinicalDataScreenState extends State<ClinicalDataScreen> {
               height: 56,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryBlueDark,
+                  backgroundColor:
+                      _isValid ? AppColors.primaryBlueDark : AppColors.borderGray,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30)),
                 ),
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (_) => const ExerciseDataScreen()),
-                  );
-                },
+                onPressed: _isValid
+                    ? () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) => const ExerciseDataScreen()),
+                        );
+                      }
+                    : null,
                 icon: const Icon(Icons.arrow_forward, color: Colors.white),
                 label: const Text('Continue to Exercise Data',
                     style: TextStyle(

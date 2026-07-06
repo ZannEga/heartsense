@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/assessment_provider.dart';
+import '../services/pdf_report_service.dart';
 import '../theme/app_theme.dart';
 import 'welcome_screen.dart';
 
@@ -63,40 +64,47 @@ class ResultsScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    SizedBox(
-                      width: 220,
-                      height: 220,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          SizedBox(
-                            width: 220,
-                            height: 220,
-                            child: CircularProgressIndicator(
-                              value: percent / 100,
-                              strokeWidth: 16,
-                              backgroundColor: AppColors.trackBlue,
-                              valueColor:
-                                  AlwaysStoppedAnimation(_riskColor(percent)),
-                            ),
-                          ),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: percent),
+                      duration: const Duration(milliseconds: 1200),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, animatedPercent, child) {
+                        return SizedBox(
+                          width: 220,
+                          height: 220,
+                          child: Stack(
+                            alignment: Alignment.center,
                             children: [
-                              Text('${percent.round()}%',
-                                  style: const TextStyle(
-                                      fontSize: 40,
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.navy)),
-                              const Text('RISK SCORE',
-                                  style: TextStyle(
-                                      color: AppColors.subtitleGray,
-                                      letterSpacing: 1,
-                                      fontWeight: FontWeight.w600)),
+                              SizedBox(
+                                width: 220,
+                                height: 220,
+                                child: CircularProgressIndicator(
+                                  value: animatedPercent / 100,
+                                  strokeWidth: 16,
+                                  backgroundColor: AppColors.trackBlue,
+                                  valueColor: AlwaysStoppedAnimation(
+                                      _riskColor(animatedPercent)),
+                                ),
+                              ),
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('${animatedPercent.round()}%',
+                                      style: const TextStyle(
+                                          fontSize: 40,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.navy)),
+                                  const Text('RISK SCORE',
+                                      style: TextStyle(
+                                          color: AppColors.subtitleGray,
+                                          letterSpacing: 1,
+                                          fontWeight: FontWeight.w600)),
+                                ],
+                              ),
                             ],
                           ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
                     Container(
@@ -197,11 +205,15 @@ class ResultsScreen extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30)),
                 ),
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text(
-                            'Hook this up to a pdf/share package if you need real printing.')),
+                onPressed: () async {
+                  final modelName =
+                      provider.selectedModel.name == 'mlp' ? 'MLP' : 'TabNet';
+                  await PdfReportService.printSingleResult(
+                    data: data,
+                    modelName: modelName,
+                    percent: percent,
+                    rawScore: provider.rawRiskScore ?? 0,
+                    riskLabel: provider.riskLabel ?? '-',
                   );
                 },
                 icon: const Icon(Icons.print_outlined,
@@ -211,6 +223,14 @@ class ResultsScreen extends StatelessWidget {
                         color: AppColors.primaryBlue,
                         fontWeight: FontWeight.w700)),
               ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'This app is for educational purposes only and is not a '
+              'substitute for professional medical advice, diagnosis, or '
+              'treatment.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11, color: AppColors.subtitleGray),
             ),
           ],
         ),

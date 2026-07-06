@@ -12,6 +12,11 @@
 /// Note: `target` (existing diagnosis) is NOT a feature for either model -
 /// `config.py`'s DROP_COLUMNS explicitly removes it before training.
 class PatientData {
+  // Explicit unnamed constructor - required because defining
+  // `factory PatientData.fromMap(...)` below removes Dart's automatically
+  // generated default constructor.
+  PatientData();
+
   // sex: LabelEncoder was alphabetical -> female = 0, male = 1
   int sex = 1;
   double age = 45;
@@ -54,5 +59,69 @@ class PatientData {
       thal.toDouble(),
       maxHeartRateReserve,
     ];
+  }
+
+  /// Copies every field from [other] into this instance - used when
+  /// restoring previously-saved data without swapping out the object
+  /// reference (Provider/screens already hold onto this instance).
+  void copyFrom(PatientData other) {
+    sex = other.sex;
+    age = other.age;
+    cp = other.cp;
+    restingBp = other.restingBp;
+    cholesterol = other.cholesterol;
+    highFastingBloodSugar = other.highFastingBloodSugar;
+    restEcg = other.restEcg;
+    maxHeartRate = other.maxHeartRate;
+    exerciseAngina = other.exerciseAngina;
+    oldpeak = other.oldpeak;
+    slope = other.slope;
+    majorVessels = other.majorVessels;
+    thal = other.thal;
+    maxHeartRateReserve = other.maxHeartRateReserve;
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'sex': sex,
+      'age': age,
+      'cp': cp,
+      'restingBp': restingBp,
+      'cholesterol': cholesterol,
+      'highFastingBloodSugar': highFastingBloodSugar,
+      'restEcg': restEcg,
+      'maxHeartRate': maxHeartRate,
+      'exerciseAngina': exerciseAngina,
+      'oldpeak': oldpeak,
+      'slope': slope,
+      'majorVessels': majorVessels,
+      'thal': thal,
+      'maxHeartRateReserve': maxHeartRateReserve,
+    };
+  }
+
+  factory PatientData.fromMap(Map<String, dynamic> map) {
+    final data = PatientData();
+    data.sex = map['sex'] as int? ?? data.sex;
+    data.age = (map['age'] as num?)?.toDouble() ?? data.age;
+    data.cp = map['cp'] as int? ?? data.cp;
+    data.restingBp = (map['restingBp'] as num?)?.toDouble() ?? data.restingBp;
+    data.cholesterol =
+        (map['cholesterol'] as num?)?.toDouble() ?? data.cholesterol;
+    data.highFastingBloodSugar = map['highFastingBloodSugar'] as bool? ??
+        data.highFastingBloodSugar;
+    data.restEcg = map['restEcg'] as int? ?? data.restEcg;
+    data.maxHeartRate =
+        (map['maxHeartRate'] as num?)?.toDouble() ?? data.maxHeartRate;
+    data.exerciseAngina =
+        map['exerciseAngina'] as bool? ?? data.exerciseAngina;
+    data.oldpeak = (map['oldpeak'] as num?)?.toDouble() ?? data.oldpeak;
+    data.slope = map['slope'] as int? ?? data.slope;
+    data.majorVessels = map['majorVessels'] as int? ?? data.majorVessels;
+    data.thal = map['thal'] as int? ?? data.thal;
+    data.maxHeartRateReserve = (map['maxHeartRateReserve'] as num?)
+            ?.toDouble() ??
+        data.maxHeartRateReserve;
+    return data;
   }
 }
