@@ -56,7 +56,7 @@ class WelcomeScreen extends StatelessWidget {
                 height: 220,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.black,
+                  color: const Color(0xFFF4F6FC),
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.primaryBlue.withOpacity(0.15),
@@ -67,8 +67,7 @@ class WelcomeScreen extends StatelessWidget {
                 ),
                 // Swap this Icon for Image.asset('assets/images/heart.png')
                 // if you want the exact glowing 3D heart illustration.
-                child: const Icon(Icons.favorite,
-                    color: Color(0xFF35E0D0), size: 90),
+                child: Image.asset('assets/images/heart_logo.png'),
               ),
               const SizedBox(height: 40),
               const Text(
